@@ -26,14 +26,27 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Build & publish
+
+      # macOS: signed with Developer ID + notarized (env from repo secrets).
+      # Notarization runs automatically because APPLE_* are set and the app is
+      # hardenedRuntime-signed. Kept separate from Windows so the mac cert never
+      # leaks into the Windows job.
+      - name: Build & publish (macOS)
+        if: matrix.os == 'macos-latest'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Unsigned builds for now (works on both OSes; Gatekeeper/SmartScreen
-          # show a first-run warning on OTHER machines). To ship a notarized
-          # macOS .dmg later: add the MAC_CSC_LINK / MAC_CSC_KEY_PASSWORD /
-          # APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID repo secrets,
-          # map them to the matching CSC_LINK / CSC_KEY_PASSWORD / APPLE_* env
-          # vars here, and remove the CSC_IDENTITY_AUTO_DISCOVERY line below.
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-        run: npx electron-builder --publish always
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          CSC_NAME: "Developer ID Application: Kadircan Isbilen (4HPU43552C)"
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npx electron-builder --mac --publish always
+
+      # Windows: unsigned for now (first-run SmartScreen warning until a paid
+      # code-signing cert is added). No signing env so nothing to leak.
+      - name: Build & publish (Windows)
+        if: matrix.os == 'windows-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always
