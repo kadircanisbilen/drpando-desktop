@@ -1,0 +1,40 @@
+name: Build & Release desktop installers
+
+# Push a version tag to build both installers and attach them to a GitHub
+# Release:   git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: # also runnable manually from the Actions tab
+
+permissions:
+  contents: write # needed to create/upload the GitHub Release
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest # builds the .dmg (arm64 + x64)
+          - os: windows-latest # builds the .exe (NSIS installer)
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # ── macOS signing + notarization (optional) ──
+          # Add these repo secrets to ship a warning-free .dmg to other Macs.
+          # Without them the build is unsigned (works, but Gatekeeper warns).
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npx electron-builder --publish always

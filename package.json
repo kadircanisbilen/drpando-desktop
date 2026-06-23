@@ -1,0 +1,57 @@
+{
+  "name": "drpando-desktop",
+  "version": "1.0.0",
+  "description": "DrPando desktop app — a thin shell around the DrPando web panel (drpando.com).",
+  "main": "main.js",
+  "author": "DrPando",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:all": "electron-builder --mac --win"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.drpando.desktop",
+    "productName": "DrPando",
+    "copyright": "Copyright © DrPando",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": ["main.js"],
+    "mac": {
+      "category": "public.app-category.medical",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "icon": "build/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "DrPando"
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DrPando"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kadircanisbilen",
+      "repo": "drpando-desktop"
+    }
+  }
+}
