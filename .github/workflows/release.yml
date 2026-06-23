@@ -29,12 +29,11 @@ jobs:
       - name: Build & publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # ── macOS signing + notarization (optional) ──
-          # Add these repo secrets to ship a warning-free .dmg to other Macs.
-          # Without them the build is unsigned (works, but Gatekeeper warns).
-          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Unsigned builds for now (works on both OSes; Gatekeeper/SmartScreen
+          # show a first-run warning on OTHER machines). To ship a notarized
+          # macOS .dmg later: add the MAC_CSC_LINK / MAC_CSC_KEY_PASSWORD /
+          # APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID repo secrets,
+          # map them to the matching CSC_LINK / CSC_KEY_PASSWORD / APPLE_* env
+          # vars here, and remove the CSC_IDENTITY_AUTO_DISCOVERY line below.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         run: npx electron-builder --publish always
