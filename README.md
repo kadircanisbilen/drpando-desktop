@@ -11,40 +11,37 @@ npm install
 npm start          # launches the app window pointing at drpando.com
 ```
 
-## Build installers
+## Releasing (CI does both platforms, auto-published)
+
+Don't build for distribution locally (Windows `.exe` can't be built on a Mac).
+Instead push a version tag — GitHub Actions builds both installers and publishes
+the Release automatically:
 
 ```bash
-npm run dist:mac   # → dist/DrPando-<ver>-arm64.dmg + -x64.dmg   (build ON a Mac)
-npm run dist:win   # → dist/DrPando Setup <ver>.exe              (best built ON Windows / CI)
+# 1. bump "version" in package.json (must match the tag)
+# 2. merge develop → main, push main
+git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
-> Cross-building the Windows installer from macOS needs Wine and is flaky — build
-> Windows on a Windows machine or in CI (GitHub Actions `windows-latest`).
+CI builds **macOS** (`DrPando-mac.dmg`, universal, **signed + notarized**) and
+**Windows** (`DrPando-Setup.exe`, **unsigned**), then flips the Release to
+public + latest once both are uploaded. The drpando-web download buttons point
+at the stable `releases/latest/download/DrPando-mac.dmg` / `DrPando-Setup.exe`
+URLs, so nothing else needs updating per release.
 
-## Signing (so users don't get warnings)
+Local `npm run dist:mac` still works for testing a `.dmg` on your own Mac.
 
-- **macOS — free, already covered by the existing Apple Developer account.**
-  Sign + notarize so the `.dmg` opens with no warning:
-  ```bash
-  export CSC_NAME="Developer ID Application: <Your Name> (4HPU43552C)"
-  export APPLE_ID="<apple-id-email>"
-  export APPLE_APP_SPECIFIC_PASSWORD="<app-specific-password>"
-  export APPLE_TEAM_ID="4HPU43552C"
-  npm run dist:mac
-  ```
-  (electron-builder notarizes automatically when these env vars are set.)
+## Signing
 
-- **Windows — optional, paid.** Without a code-signing certificate the app still
-  works, but the first launch shows a "Windows protected your PC / unknown
-  publisher" SmartScreen prompt (user clicks *More info → Run anyway*). To remove
-  it, buy an OV/EV code-signing cert (or Azure Trusted Signing) and set
-  `CSC_LINK` / `CSC_KEY_PASSWORD` before `npm run dist:win`.
-
-## Distribute
-
-Upload the built `.dmg` / `.exe` to a public location (e.g. the web server or a
-GitHub Release) and link to them from the site, e.g. a "Download desktop app"
-button on drpando.com.
+- **macOS — configured & free** (existing Apple Developer account, team
+  `4HPU43552C`). CI signs with the "Developer ID Application" cert and notarizes,
+  using repo secrets `MAC_CSC_LINK`, `MAC_CSC_KEY_PASSWORD`, `APPLE_ID`,
+  `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`. The `.dmg` opens with no
+  warning on any Mac.
+- **Windows — unsigned (paid, not set up).** First launch shows a SmartScreen
+  "unknown publisher" prompt (*More info → Run anyway*); the app works fine. To
+  remove it, add an OV/EV cert via `CSC_LINK` / `CSC_KEY_PASSWORD` on the Windows
+  build step.
 
 ## Notes
 
