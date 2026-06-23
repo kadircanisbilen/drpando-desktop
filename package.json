@@ -1,6 +1,6 @@
 {
   "name": "drpando-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DrPando desktop app — a thin shell around the DrPando web panel (drpando.com).",
   "main": "main.js",
   "author": "DrPando",
@@ -28,17 +28,19 @@
     "files": ["main.js"],
     "mac": {
       "category": "public.app-category.medical",
-      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "target": [{ "target": "dmg", "arch": ["universal"] }],
       "icon": "build/icon.png",
       "hardenedRuntime": true,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "artifactName": "DrPando-mac.${ext}"
     },
     "dmg": {
       "title": "DrPando"
     },
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "artifactName": "DrPando-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
